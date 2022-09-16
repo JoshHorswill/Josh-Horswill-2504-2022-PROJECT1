@@ -11,15 +11,10 @@
 ####################################
 
 """
-A Polynomial type - designed to be for polynomials with integer coefficients.
+A Polynomial Sparse type - designed to be for polynomials with integer coefficients.
 """
 struct Polynomial
 
-    #A zero packed vector of terms
-    #Terms are assumed to be in order with first term having degree 0, second degree 1, and so fourth
-    #until the degree of the polynomial. The leading term (i.e. last) is assumed to be non-zero except 
-    #for the zero polynomial where the vector is of length 1.
-    #Note: at positions where the coefficient is 0, the power of the term is also 0 (this is how the Term type is designed)
     terms::Vector{Term}   
     
     #Inner constructor of 0 polynomial
@@ -41,9 +36,11 @@ struct Polynomial
         for t in vt
             terms[t.degree + 1] = t #+1 accounts for 1-indexing
         end
+
         return new(terms)
     end
 end
+
 
 """
 This function maintains the invariant of the Polynomial type so that there are no zero terms beyond the highest
@@ -66,7 +63,7 @@ end
 Construct a polynomial with a single term.
 """
 Polynomial(t::Term) = Polynomial([t])
-
+x_poly() = Polynomial(Term(1,1))
 """
 Construct a polynomial of the form x^p-x.
 """
@@ -131,7 +128,17 @@ function show(io::IO, p::Polynomial)
         n = length(p.terms)
         for (i,t) in enumerate(p.terms)
             if !iszero(t)
-                print(io, t, i != n ? " + " : "")
+                if t.degree == 0 && t.coeff < 0
+                    print(io, i != 1 ? " " : "", t.coeff, " ")
+                elseif t.degree == 0 && t.coeff > 0
+                    print(io, i != 1 ? " + " : "", t.coeff, "⋅x", "")
+                elseif t.degree > 0 && t.coeff > 0
+                    print(io, i != 1 ? " + " : "", t)
+                elseif t.degree > 0 && t.coeff < 0
+                    print(io, i != 1 ? " " : "", t)
+                else
+                    #print("io, t, i != n ? " + " : """)
+                end
             end
         end
     end
@@ -170,6 +177,7 @@ The degree of the polynomial.
 """
 degree(p::Polynomial)::Int = leading(p).degree 
 
+degrees(p::Polynomial)::Vector{Int} = [t.degree for t in p]
 """
 The content of the polynomial is the GCD of its coefficients.
 """
@@ -220,6 +228,7 @@ Check if the polynomial is zero.
 """
 iszero(p::Polynomial)::Bool = p.terms == [Term(0,0)]
 
+#isone(p::Polynomial)::Bool = p.terms == [Term()]
 #################################################################
 # Transformation of the polynomial to create another polynomial #
 #################################################################

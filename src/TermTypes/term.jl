@@ -19,6 +19,7 @@ struct Term  #structs are immutable by default
     function Term(coeff::Int, degree::Int)
         degree < 0 && error("Degree must be non-negative")
         coeff != 0 ? new(coeff,degree) : new(coeff,0)
+
     end
 end
 
@@ -26,12 +27,10 @@ end
 Creates the zero term.
 """
 zero(::Type{Term})::Term = Term(0,0)
-
 """
 Creates the unit term.
 """
 one(::Type{Term})::Term = Term(1,0)
-
 ###########
 # Display #
 ###########
@@ -40,7 +39,6 @@ one(::Type{Term})::Term = Term(1,0)
 Show a term.
 """
 show(io::IO, t::Term) = print(io, "$(t.coeff)⋅x^$(t.degree)") #\cdot + [TAB]
-
 ########################
 # Queries about a term #
 ########################
@@ -49,17 +47,17 @@ show(io::IO, t::Term) = print(io, "$(t.coeff)⋅x^$(t.degree)") #\cdot + [TAB]
 Check if a term is 0.
 """
 iszero(t::Term)::Bool = iszero(t.coeff)
+iszero2(t::Term)::Bool = iszero(t.degree)
+
 
 """
 Compare two terms.
 """
-isless(t1::Term,t2::Term)::Bool =  t1.degree == t2.degree ? (t1.coeff < t2.coeff) : (t1.degree < t2.degree)  
-
+isless(t1::Term,t2::Term)::Bool =  t1.degree == t2.degree ? (t1.coeff < t2.coeff) : (t1.degree < t2.degree)
 """
 Evaluate a term at a point x.
 """
 evaluate(t::Term, x::T) where T <: Number = t.coeff * x^t.degree
-
 ##########################
 # Operations with a term #
 ##########################
@@ -75,18 +73,16 @@ end
 """
 Negate a term.
 """
--(t::Term,) = Term(-t.coeff,t.degree)  
+-(t::Term,) = Term(-t.coeff,t.degree)
 
 """
 Subtract two terms with the same degree.
 """
--(t1::Term, t2::Term)::Term = t1 + (-t2) 
-
+-(t1::Term, t2::Term)::Term = t1 + (-t2)
 """
 Multiply two terms.
 """
 *(t1::Term, t2::Term)::Term = Term(t1.coeff * t2.coeff, t1.degree + t2.degree)
-
 
 """
 Compute the symmetric mod of a term with an integer.
