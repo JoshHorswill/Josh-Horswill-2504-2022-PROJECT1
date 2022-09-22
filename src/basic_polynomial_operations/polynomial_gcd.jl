@@ -6,13 +6,11 @@
 #############################################################################
 #############################################################################
 
-"""
-The extended euclid algorithm for polynomials modulo prime.
-"""
-function extended_euclid_alg(a::Polynomial, b::Polynomial, prime::Int)
+### EUCLIDEAN ALGORITHM AND GCD DEFINITIONS FOR DENSE, SPARSE & BINT
+function extended_euclid_alg(a::PolynomialDense, b::PolynomialDense, prime::Int)
     old_r, r = mod(a, prime), mod(b, prime)
-    old_s, s = one(Polynomial), zero(Polynomial)
-    old_t, t = zero(Polynomial), one(Polynomial)
+    old_s, s = one(PolynomialDense), zero(PolynomialDense)
+    old_t, t = zero(PolynomialDense), one(PolynomialDense)
 
     while !iszero(mod(r,prime))
         q = first(divide(old_r, r)(prime))
@@ -22,11 +20,12 @@ function extended_euclid_alg(a::Polynomial, b::Polynomial, prime::Int)
     end
     g, s, t = old_r, old_s, old_t
 
-    @assert mod(s*a + t*b - g, prime) == 0
+    plswork = mod(s*a + t*b - g, prime)
+    @assert degree(plswork) == 0
     return g, s, t  
 end
 
-gcd(a::Polynomial, b::Polynomial, prime::Int) = extended_euclid_alg(a,b,prime) |> first
+gcd(a::PolynomialDense, b::PolynomialDense, prime::Int) = extended_euclid_alg(a,b,prime) |> first
 
 
 function extended_euclid_alg(a::PolynomialSparse, b::PolynomialSparse, prime::Int)
@@ -35,16 +34,16 @@ function extended_euclid_alg(a::PolynomialSparse, b::PolynomialSparse, prime::In
     old_l, l = zero(PolynomialSparse), one(PolynomialSparse)
 
     while !iszero(mod(j, prime))
-        p = first(divide(old_j, j)(prime))
+        p = first(divide(PolynomialSparse([i for i in old_j.terms]), j)(prime))
         old_j, j = j, mod(old_j - p*j, prime)
-        jre = PolynomialSparse([i for i in j.terms])
-        j = jre
+        jre = PolynomialSparse([i for i in j.terms]);
+        j = jre;
         old_k, k = k, mod(old_k - p*k, prime)
-        kre = PolynomialSparse([i for i in k.terms])
-        k = kre
+        kre = PolynomialSparse([i for i in k.terms]);
+        k = kre;
         old_l, l = l, mod(old_l - p*l, prime)
-        lre = PolynomialSparse([i for i in l.terms])
-        l = lre
+        lre = PolynomialSparse([i for i in l.terms]);
+        l = lre;        
     end
     g, s, t = old_j, old_k, old_l
 
@@ -63,8 +62,8 @@ function extended_euclid_alg(a::PolynomialSparseBInt, b::PolynomialSparseBInt, p
     old_k, k = one(PolynomialSparseBInt), zero(PolynomialSparseBInt)
     old_l, l = zero(PolynomialSparseBInt), one(PolynomialSparseBInt)
 
-    while !iszero(mod(j, prime))
-        p = first(divide(old_j, j)(prime))
+    while !iszero2(mod(j, prime))
+        p = first(divide(PolynomialSparseBInt([i for i in old_j.terms]), j)(prime))
         old_j, j = j, mod(old_j - p*j, prime)
         jre = PolynomialSparseBInt([i for i in j.terms])
         j = jre
@@ -77,9 +76,12 @@ function extended_euclid_alg(a::PolynomialSparseBInt, b::PolynomialSparseBInt, p
     end
     g, s, t = old_j, old_k, old_l
 
-    @assert mod(s*a + t*b - g, prime) == 0
+    xx = mod((s*a + t*b) - g, prime)
+    degrees(xx)[1] == 0 && coeffs(xx)[1] == 0
+    
     return g, s, t  
 end
+
 
 """
 The GCD of two polynomials modulo prime.

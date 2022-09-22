@@ -6,11 +6,12 @@
 #############################################################################
 #############################################################################
 
+### POLYNOMIALDENSE MULTIPLICATION & POWER OF SPARSE, BINT
 """
 Multiply two polynomials.
 """
-function *(p1::Polynomial, p2::Polynomial)::Polynomial
-    p_out = Polynomial()
+function *(p1::PolynomialDense, p2::PolynomialDense)::PolynomialDense
+    p_out = PolynomialDense()
     for t in p1
         new_summand = (t * p2)
         p_out = p_out + new_summand
@@ -21,7 +22,7 @@ end
 """
 Power of a polynomial.
 """
-function ^(p::Polynomial, n::Int)
+function ^(p::PolynomialDense, n::Int)
     n < 0 && error("No negative power")
     out = one(p)
     for _ in 1:n
@@ -30,78 +31,13 @@ function ^(p::Polynomial, n::Int)
     return out
 end
 
-function ^(p::PolynomialSparseBIn, n::Int)
+function ^(p::PolynomialSparse, n::Int)
     n < 0 && error("No negative power")
     out = one(p)
     for _ in 1:n
         out *= p
     end
     return out
-end
-
-function ^(p::PolynomialSparse, n::Int)::PolynomialSparse
-
-    n < 0 && error("No negative power")
-    out = one(p)
-    for _ in 1:n
-        out *= p
-    end
-
-    println(length(out))
-    terms = [zero(Term) for _ in 0:100]
-    cnter = 0
-
-    for t in out
-        cnter += 1
-        #println(t)
-        if t.coeff !=0 && t.degree != 0 
-            cnter += 1
-            terms[cnter] = Term(t.coeff, t.degree-1) #+1 accounts for 1-indexing
-        end
-        #println(terms)
-    end
-    
-    cnter_2 = 0
-    return_val = PolynomialSparse(Term(0,0))
-    for i in terms
-        cnter_2 += 1
-        if i.degree !== 0 && i.coeff !== 0
-            return_val += i
-        end
-    end
-    return return_val
-end
-
-function ^(p::PolynomialSparseBIn, n::Int)
-    n < 0 && error("No negative power")
-    out = one(p)
-    for _ in 1:n
-        out *= p
-    end
-
-    len = length(out)
-    terms = [zero(TermBI) for _ in 0:100]
-    println(typeof(terms))
-    cnter = 0
-
-    for t in out
-        cnter += 1
-        if t.coeff !=0 && t.degree != 0 
-            cnter += 1
-            terms[cnter] = TermBI(t.coeff, t.degree-1) #+1 accounts for 1-indexing
-        end
-    end
-
-    cnter_2 = 0
-    return_val = PolynomialSparseBIn(TermBI(big"0",0))
-    for i in terms
-        cnter_2 += 1
-        if i.degree !== 0 && i.coeff !== 0
-            return_val += i
-        end
-    end
-
-    return return_val
 end
 
 function ^(p::PolynomialSparseBInt, n::Int)
@@ -110,32 +46,11 @@ function ^(p::PolynomialSparseBInt, n::Int)
     for _ in 1:n
         out *= p
     end
-
-    len = length(out)
-    terms = [zero(TermBI) for _ in 0:100]
-    println(typeof(terms))
-    cnter = 0
-
-    for t in out
-        cnter += 1
-        if t.coeff !=0 && t.degree != 0 
-            cnter += 1
-            terms[cnter] = TermBI(t.coeff, t.degree-1) #+1 accounts for 1-indexing
-        end
-    end
-
-    cnter_2 = 0
-    return_val = PolynomialSparseBInt(TermBI(big"0",0))
-    for i in terms
-        cnter_2 += 1
-        if i.degree !== 0 && i.coeff !== 0
-            return_val += i
-        end
-    end
-
-    return return_val
+    return out
 end
 
+
+### MULTIPLICATION OF SPARSE AND SPARSEBINT FOR POLYNOMIALS, TERMS AND INTS
 function *(p1::PolynomialSparse, p2::PolynomialSparse)::PolynomialSparse
     p_out = PolynomialSparse()
     for t in p1
@@ -145,14 +60,6 @@ function *(p1::PolynomialSparse, p2::PolynomialSparse)::PolynomialSparse
     return p_out
 end
 
-function *(p1::PolynomialSparseBIn, p2::PolynomialSparseBIn)::PolynomialSparseBIn
-    p_out = PolynomialSparseBIn()
-    for t in p1
-        new_summand = (t * p2)
-        p_out = p_out + new_summand
-    end
-    return p_out
-end
 
 function *(p1::PolynomialSparseBInt, p2::PolynomialSparseBInt)::PolynomialSparseBInt
     p_out = PolynomialSparseBInt()
@@ -163,8 +70,104 @@ function *(p1::PolynomialSparseBInt, p2::PolynomialSparseBInt)::PolynomialSparse
     return p_out
 end
 
+*(t::Term, p1::PolynomialModP)::PolynomialModP = iszero(t) ? PolynomialModP() : PolynomialModP(PolynomialSparse(map((pt)->t*pt, p1.p.terms)), p1.prime)
+*(p1::PolynomialModP, t::Term)::PolynomialModP = t*p1
+*(n::Int, p::PolynomialModP)::PolynomialModP = p*Term(n,0)
+*(p::PolynomialModP, n::Int)::PolynomialModP = n*p
 
-"""
-Power of a polynomial.
-"""
+### POLYNOMIAL MOD P MULTIPLICATION FOR POLYNOMIALS, TERMS AND INTS 
+# ASSERT EQUAL PRIMES & RETURN MOD P
+function *(p1::PolynomialModP, p2::PolynomialModP)::PolynomialModP
+    @assert p1.prime == p2.prime
+    p_out = PolynomialSparse()
+    for t in p1.p
+        new_summand = (t * p2.p)
+        p_out += new_summand
+    end
+    p_out = mod(p_out, p1.prime)
+    return PolynomialModP(p_out, p1.prime)
+end
 
+
+### POWER OF POLYNOMIAL MOD P
+
+function ^(p::PolynomialModP, n::Int)
+    poly = p.p    
+    polysq = ^(poly, n)
+    polysq = mod(polysq, p.prime)
+    return PolynomialModP(polysq, p.prime)
+end
+
+### REPEATED SQUARED METHOD OF EXPONENTS FOR BINT, SPARSE AND MODP
+function repsqr_exp(p::PolynomialSparseBInt, n::Int)
+    @assert n < 2^8
+    incr = [1, 2, 4, 8, 16, 32, 64, 128]
+    bin_vals = digits(n, base=2, pad=8)
+    return_val = TermBI(big"1",0)
+    for i in 1:8
+        if bin_vals[i] != 0
+            return_val *= ^(p, incr[i])
+        else
+        end
+    end
+    return return_val
+end
+
+
+function repsqr_exp(p::PolynomialSparse, n::Int)
+    @assert n < 2^8
+    incr = [1, 2, 4, 8, 16, 32, 64, 128]
+    bin_vals = digits(n, base=2, pad=8)
+    return_val = Term(1,0)
+
+    for i in 1:8
+        if bin_vals[i] != 0
+            return_val *= ^(p, incr[i])
+        else
+        end
+    end
+    return return_val
+end
+
+function repsqr_exp(p::PolynomialModP, n::Int)
+    @assert n < 2^8
+    valu = ^(p.p, n)
+    return mod(valu, p.prime)
+end
+
+
+
+### POWER MOD 1 AND 2 FOR POLYNOMIAL MODP
+function pow_mod(p::PolynomialModP, n::Int)
+    n < 0 && error("No negative power")
+    out = one(p.p)
+    for _ in 1:n
+        out *= p.p
+        out = mod(out, p.prime)
+    end
+    return out
+end
+
+function repsqr_exp(p::PolynomialSparse, n::Int)
+    @assert n < 2^8
+    incr = [1, 2, 4, 8, 16, 32, 64, 128]
+    bin_vals = digits(n, base=2, pad=8)
+    return_val = Term(1,0)
+    for i in 1:8
+        if bin_vals[i] != 0
+            return_val *= ^(p, incr[i])
+        else
+        end
+    end
+    return return_val
+end
+
+
+function pow_mod2(p::PolynomialModP, n::Int)
+    n < 0 && error("No negative power")
+    out = one(p.p)
+    pal = p.p
+    return_val = repsqr_exp(p, n)
+
+    return return_val
+end

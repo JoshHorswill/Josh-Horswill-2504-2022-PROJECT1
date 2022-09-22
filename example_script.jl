@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(".")
 
-include("poly_factorization_project.jl")
+#include("poly_factorization_project.jl")
 
 x = x_poly()
 p1 = 2x^3 + 4x^2 - 3x

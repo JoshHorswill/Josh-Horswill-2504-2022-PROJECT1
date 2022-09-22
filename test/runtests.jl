@@ -34,9 +34,4 @@ division_test_poly()
 include("factorization_test.jl")
 factor_test_poly()
 
-####
-# Test PolynomialSparse and PolynomialSparseBInt
-####
-include("polynomialsparse.jl")
-include("PolynomialSparse_test.jl")
 

@@ -37,12 +37,35 @@ t4 = TermBI(big"200", 1)*t3
 println("And perform arithmatic:")
 println("    -> 200 * Term = $t4")
 
-
+println()
 println("################ TIMING ################")
+println("Comparision of overflow times")
+
+pls = PolynomialSparse(Term(9223372036854775807, 2))
+plt = PolynomialSparse(Term(25, 2))
+
+plsBI = PolynomialSparseBInt(TermBI(big"9223372036854775807", 2))
+pltBI = PolynomialSparseBInt(TermBI(big"25", 2))
+
+println()
+println("Addition of $pls and $plt")
+println("PolynomialSparse:")
+@time pls + plt
+println("PolynomialSparseBInt:")
+@time plsBI + pltBI 
+
+println()
+println("Product of $pls and $plt")
+println("PolynomialSparse:")
+@time pls * plt
+println("PolynomialSparseBInt:")
+@time plsBI * pltBI 
+
+println()
 println("Comparision of compiling 10x^1 + 20x^2 + 100x^10:")
 
 println("Polynomial")
-@time Polynomial([Term(10,1), Term(20, 2), Term(100, 10)])
+@time PolynomialDense([Term(10,1), Term(20, 2), Term(100, 10)])
 println("PolynomialSparse")
 @time PolynomialSparse([Term(10,1), Term(20, 2), Term(100, 10)])
 println("PolynomialSparseBInt")
@@ -51,7 +74,7 @@ println("PolynomialSparseBInt")
 println()
 println("Operation Timing: product of two random polynomials")
 println("Polynomial")
-@time rand(Polynomial)*rand(Polynomial)
+@time rand(PolynomialDense)*rand(PolynomialDense)
 println("PolynomialSparse")
 @time rand(PolynomialSparse)*rand(PolynomialSparse)
 println("PolynomialSparseBInt")
