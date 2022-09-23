@@ -4,10 +4,10 @@ Pkg.activate(".")
 #include("poly_factorization_project.jl")
 
 # Construct Polynomial
-x = x_poly()
+x = x_poly_sp()
 
 # Declare two functions
-x = x_poly()
+x = x_poly_sp()
 p1 = 5x^3 + 8x^2 - 9x
 p2 = 1x^2 - 2x + 4x + 3 
 

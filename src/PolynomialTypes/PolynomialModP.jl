@@ -106,6 +106,10 @@ function show(io::IO, f::PolynomialModP)
                     print(io, i != 1 ? " " : "", t.coeff, " ")
                 elseif t.degree == 1 && t.coeff > 0
                     print(io, i != 1 ? " + " : "", t.coeff, "x")
+                elseif t.degree == 1 && t.coeff < 0
+                    print(io, i != 1 ? " " : "", t.coeff, "x")
+                elseif t.degree == 1 && t.coeff > 0
+                    print(io, i != 1 ? " + " : "", t.coeff, "x")
                 elseif t.degree == 0 && t.coeff > 0
                     print(io, i != 1 ? " + " : "", t.coeff, "", "")
                 elseif t.degree > 0 && t.coeff > 0
